@@ -4,6 +4,14 @@
 
 SDK 不复制 Umami 的 Dashboard、查询 API 或业务数据库，也不建立通用插件系统。当前没有运行时第三方依赖。
 
+TypeScript/Browser/Node 包通过 npm 分发：
+
+```bash
+npm install --save-exact @perrin-yong/umami-sdk@0.1.0
+```
+
+配置字段、区域选择、Consent/Identity 生命周期和完整示例见 [`docs/configuration.md`](docs/configuration.md)；版本、测试、GitHub Release 和 npm 发布流程见 [`docs/cicd.md`](docs/cicd.md)。
+
 ## 第一性原理
 
 1. 产品的主流程比 Analytics 更重要；上报失败不能改变 UI、返回值、退出码或业务事务。
@@ -38,8 +46,8 @@ Client 持有单一当前 Subject。Browser、Desktop、插件和 CLI 使用长�
 
 | 产品形态 | 包 | 发送模型 | 离线持久化 |
 | --- | --- | --- | --- |
-| Browser | `@pystone/analytics/web` | Umami Tracker；始终先入队，下一微任务发送 | 无；刷新页面可丢弃 |
-| Node/OpenCode | `@pystone/analytics/node` | 内存队列 + `/api/batch` | 当前无 |
+| Browser | `@perrin-yong/umami-sdk/web` | Umami Tracker；始终先入队，下一微任务发送 | 无；刷新页面可丢弃 |
+| Node/OpenCode | `@perrin-yong/umami-sdk/node` | 内存队列 + `/api/batch` | 当前无 |
 | Windows Desktop | `Pystone.Analytics` | 后台 Task + `/api/batch` | 可选，原子替换 |
 | Python CLI/Agent | `pystone-analytics` | 后台线程 + `/api/batch` | 可选，原子替换 |
 
@@ -54,6 +62,7 @@ Client 持有单一当前 Subject。Browser、Desktop、插件和 CLI 使用长�
 ```powershell
 python tools/generate_policy.py
 python tools/generate_policy.py --check
+python tools/check_version.py
 python tests/validate_schema.py
 python tests/validate_docs.py
 ```
@@ -81,7 +90,7 @@ python -m unittest discover -s python/tests -v
 
 ## 版本与发布
 
-当前版本为 `0.1.0`。在真实 Staging 产品完成断网、慢网、退出、升级和 Consent 验收前，只从本仓库固定 commit 构建，不发布浮动版本。发布包必须同时固定 SDK 版本、事件 Schema 版本和 Policy Version。
+当前版本为 `0.1.0`。TypeScript 包发布为 `@perrin-yong/umami-sdk`；产品必须固定版本，不使用浮动的 `latest` 做不可控升级。发布包必须同时固定 SDK 版本、事件 Schema 版本和 Policy Version。
 
 在 SDK 根目录统一生成三种安装制品：
 
@@ -91,4 +100,4 @@ python -m unittest discover -s python/tests -v
 
 输出位于忽略 Git 的 `artifacts/sdk/`，脚本会先执行 Schema 与全部运行时测试，并打印每个制品的 SHA-256。产品应固定安装这里生成的 `.tgz`、`.nupkg` 或 `.whl`，不要直接依赖移动中的源码目录。
 
-详细设计见 [`docs/architecture.md`](docs/architecture.md)，事件、身份和隐私规范见 [`docs/analytics-spec.md`](docs/analytics-spec.md)。人工使用与后台分析见 [`docs/product-integration.md`](docs/product-integration.md)；产品研发 Agent 应使用 [`docs/integration-guide.md`](docs/integration-guide.md)，并填写 [`docs/product-integration-template.md`](docs/product-integration-template.md)。
+详细设计见 [`docs/architecture.md`](docs/architecture.md)，事件、身份和隐私规范见 [`docs/analytics-spec.md`](docs/analytics-spec.md)。人工使用与后台分析见 [`docs/product-integration.md`](docs/product-integration.md)；产品研发 Agent 应使用 [`docs/integration-guide.md`](docs/integration-guide.md)，并填写 [`docs/product-integration-template.md`](docs/product-integration-template.md)。npm 发布由 GitHub Release 驱动，详见 [`docs/cicd.md`](docs/cicd.md)。

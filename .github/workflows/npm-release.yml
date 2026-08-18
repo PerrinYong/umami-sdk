@@ -1,0 +1,86 @@
+name: Publish npm package
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout released commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js and npm registry
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - name: Use npm with trusted-publishing support
+        run: npm install --global npm@11.8.0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.10'
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Validate release tag and package metadata
+        run: python tools/check_version.py --tag "${{ github.event.release.tag_name }}"
+
+      - name: Require the released commit to belong to main
+        shell: bash
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          git merge-base --is-ancestor HEAD origin/main
+
+      - name: Test and package all SDK runtimes
+        shell: pwsh
+        run: ./tools/build-sdk.ps1 -OutputDirectory "$env:RUNNER_TEMP/sdk-packages"
+
+      - name: Refuse an already-published immutable version
+        working-directory: typescript
+        shell: bash
+        run: |
+          package_name=$(node -p "require('./package.json').name")
+          package_version=$(node -p "require('./package.json').version")
+          if npm view "${package_name}@${package_version}" version --registry=https://registry.npmjs.org/ >/dev/null 2>&1; then
+            echo "::error::${package_name}@${package_version} already exists; npm versions are immutable."
+            exit 1
+          fi
+
+      - name: Publish the tested npm artifact with provenance
+        shell: bash
+        run: |
+          package_tgz=$(find "$RUNNER_TEMP/sdk-packages" -maxdepth 1 -type f -name 'perrin-yong-umami-sdk-*.tgz' -print -quit)
+          test -n "$package_tgz"
+          npm publish "$package_tgz" --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify published package
+        working-directory: typescript
+        shell: bash
+        run: |
+          package_name=$(node -p "require('./package.json').name")
+          package_version=$(node -p "require('./package.json').version")
+          published=$(npm view "${package_name}@${package_version}" version --registry=https://registry.npmjs.org/)
+          test "$published" = "$package_version"

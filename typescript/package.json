@@ -1,9 +1,27 @@
 {
-  "name": "@pystone/analytics",
+  "name": "@perrin-yong/umami-sdk",
   "version": "0.1.0",
-  "private": true,
   "description": "Thin, privacy-first Umami SDK for Pystone products",
+  "license": "UNLICENSED",
+  "author": "Perrin Yong",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PerrinYong/umami-sdk.git",
+    "directory": "typescript"
+  },
+  "homepage": "https://github.com/PerrinYong/umami-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/PerrinYong/umami-sdk/issues"
+  },
+  "keywords": [
+    "umami",
+    "analytics",
+    "telemetry",
+    "privacy",
+    "typescript"
+  ],
   "type": "module",
+  "sideEffects": false,
   "engines": {
     "node": ">=18.18"
   },
@@ -30,7 +48,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test dist/tests/*.test.js"
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "prepack": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

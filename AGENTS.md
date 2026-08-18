@@ -31,6 +31,7 @@
 
 ```powershell
 python tools/generate_policy.py --check
+python tools/check_version.py
 python tests/validate_schema.py
 python tests/validate_docs.py
 .\tools\build-sdk.ps1
@@ -41,5 +42,6 @@ python tests/validate_docs.py
 ## Git 与 Secret
 
 - 不提交构建产物、缓存、Website 私有配置、HMAC Key、Token、Cookie 或真实用户数据。
+- npm 发布坐标固定为 `@perrin-yong/umami-sdk`；发布配置和版本必须通过 `tools/check_version.py`。
 - 尊重现有修改；禁止 `git reset --hard`、强制覆盖或大范围清理工作区。
 - 发布必须固定 SDK、Schema 和 Policy 版本，并记录制品 SHA-256。

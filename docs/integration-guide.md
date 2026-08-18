@@ -81,8 +81,8 @@ analytics_integration:
 
 | 产品形态 | 制品 | 导入入口 | 最低运行时 |
 | --- | --- | --- | --- |
-| Browser、SPA、SSR 的客户端部分 | npm `.tgz` | `@pystone/analytics/web` | 现代 ES2022 Browser |
-| Node 服务、OpenCode/Bun 插件 | npm `.tgz` | `@pystone/analytics/node` | Node 18.18+；Bun 先做兼容验收 |
+| Browser、SPA、SSR 的客户端部分 | npm | `@perrin-yong/umami-sdk/web` | 现代 ES2022 Browser |
+| Node 服务、OpenCode/Bun 插件 | npm | `@perrin-yong/umami-sdk/node` | Node 18.18+；Bun 先做兼容验收 |
 | Windows Desktop | NuGet `.nupkg` | `Pystone.Analytics` | .NET 8 |
 | Python CLI、Agent、服务 | Python `.whl` | `pystone_analytics` | Python 3.10+ |
 
@@ -95,7 +95,7 @@ analytics_integration:
 制品位于 `artifacts/sdk/`。将它复制到产品的私有制品位置，然后安装：
 
 ```powershell
-npm install <ARTIFACT_DIR>\pystone-analytics-0.1.0.tgz
+npm install @perrin-yong/umami-sdk@0.1.0
 dotnet add package Pystone.Analytics --version 0.1.0 --source <ARTIFACT_DIR>
 python -m pip install <ARTIFACT_DIR>\pystone_analytics-0.1.0-py3-none-any.whl
 ```
@@ -235,7 +235,7 @@ TypeScript/Node：
 import {
   createInstallationId,
   deriveInstallationSubjectId,
-} from '@pystone/analytics/node';
+} from '@perrin-yong/umami-sdk/node';
 
 const installationId = loadInstallationId() ?? createInstallationId();
 saveInstallationId(installationId);
@@ -278,7 +278,7 @@ Key 只存在于可信后端。Browser、Desktop、CLI、Agent 和插件只接�
 Node 后端示例：
 
 ```ts
-import { deriveUserSubjectId } from '@pystone/analytics/node';
+import { deriveUserSubjectId } from '@perrin-yong/umami-sdk/node';
 
 const subjectId = deriveUserSubjectId(productKeyBuffer, internalUserId);
 ```
@@ -310,7 +310,7 @@ Browser、Desktop、插件和 CLI 等单 Subject 产品应使用应用级单例�
 ### 8.1 Browser / SPA
 
 ```ts
-import { createWebAnalytics } from '@pystone/analytics/web';
+import { createWebAnalytics } from '@perrin-yong/umami-sdk/web';
 
 export const analytics = createWebAnalytics({
   endpoint: 'https://umami.pystone.net',
@@ -369,7 +369,7 @@ if (!result.accepted) {
 ### 8.2 Node 服务
 
 ```ts
-import { createNodeAnalytics } from '@pystone/analytics/node';
+import { createNodeAnalytics } from '@perrin-yong/umami-sdk/node';
 
 export const analytics = createNodeAnalytics({
   endpoint: process.env.ANALYTICS_ENDPOINT!,

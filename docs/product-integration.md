@@ -212,7 +212,7 @@ consent_state, policy_version
 SDK 根目录运行 `.\tools\build-sdk.ps1` 后，产品从 `artifacts/sdk/` 安装固定版本制品：
 
 ```powershell
-npm install <PATH_TO_ARTIFACTS>\pystone-analytics-0.1.0.tgz
+npm install @perrin-yong/umami-sdk@0.1.0
 dotnet add package Pystone.Analytics --version 0.1.0 --source <PATH_TO_ARTIFACTS>
 python -m pip install <PATH_TO_ARTIFACTS>\pystone_analytics-0.1.0-py3-none-any.whl
 ```
@@ -244,7 +244,7 @@ unknown ──► granted ──► withdrawn
 不要在 HTML 初始内容中无条件加载 Tracker。创建 SDK 实例时保持 `unknown`；只有用户同意后才加载脚本：
 
 ```ts
-import { createWebAnalytics } from '@pystone/analytics/web';
+import { createWebAnalytics } from '@perrin-yong/umami-sdk/web';
 
 export const analytics = createWebAnalytics({
   endpoint: 'https://umami.pystone.net',
@@ -360,7 +360,7 @@ subject_id = Base64URL(HMAC-SHA256(product_key, internal_user_id))
 Node.js 可信后端使用 SDK 身份工具和至少 32 字节的产品独立 Key：
 
 ```ts
-import { deriveUserSubjectId } from '@pystone/analytics/node';
+import { deriveUserSubjectId } from '@perrin-yong/umami-sdk/node';
 
 export function analyticsSubjectId(productKey: Buffer, internalUserId: string) {
   return deriveUserSubjectId(productKey, internalUserId);
@@ -409,13 +409,13 @@ subject_id = Base64URL(SHA-256(product_scope || installation_id))
 
 ```powershell
 .\tools\build-sdk.ps1
-npm install <PATH_TO_ARTIFACTS>\pystone-analytics-0.1.0.tgz
+npm install @perrin-yong/umami-sdk@0.1.0
 ```
 
 初始化一次，业务路径不 `await track()`：
 
 ```ts
-import { createNodeAnalytics } from '@pystone/analytics/node';
+import { createNodeAnalytics } from '@perrin-yong/umami-sdk/node';
 
 const analytics = createNodeAnalytics({
   endpoint: process.env.UMAMI_ENDPOINT!,
@@ -541,10 +541,10 @@ Identify 的 HTTP 形式：
 
 ## 11. OpenCode 插件和 Bun
 
-插件优先试用 `@pystone/analytics/node`；它只依赖运行时内置的 `fetch`、Web Crypto/Node Crypto 和计时器。每次 OpenCode/Bun 升级都在 Staging 做加载、断网和退出测试。业务 Hook 只同步入队：
+插件优先试用 `@perrin-yong/umami-sdk/node`；它只依赖运行时内置的 `fetch`、Web Crypto/Node Crypto 和计时器。每次 OpenCode/Bun 升级都在 Staging 做加载、断网和退出测试。业务 Hook 只同步入队：
 
 ```ts
-import { createNodeAnalytics } from '@pystone/analytics/node';
+import { createNodeAnalytics } from '@perrin-yong/umami-sdk/node';
 
 const analytics = createNodeAnalytics({
   endpoint,

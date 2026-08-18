@@ -17,6 +17,8 @@ PRODUCT_GUIDE = SDK_ROOT / "docs/product-integration.md"
 ARCHITECTURE = SDK_ROOT / "docs/architecture.md"
 READINESS = SDK_ROOT / "docs/production-readiness.md"
 ANALYTICS_SPEC = SDK_ROOT / "docs/analytics-spec.md"
+CONFIGURATION = SDK_ROOT / "docs/configuration.md"
+CICD = SDK_ROOT / "docs/cicd.md"
 
 registry = json.loads(
     (SDK_ROOT / "schema/event-registry.json").read_text(encoding="utf-8")
@@ -43,11 +45,16 @@ versions = {
 }
 assert len(versions) == 1 and None not in versions, versions
 sdk_version = versions.pop()
+package_name = typescript["name"]
 
 guide = GUIDE.read_text(encoding="utf-8")
 assert f"当前 SDK 版本：`{sdk_version}`" in guide
 assert f"事件 Schema 版本：`{registry['schema_version']}`" in guide
 assert f"Privacy Policy 版本：`{policy['policy_version']}`" in guide
+assert package_name == "@perrin-yong/umami-sdk"
+assert package_name in guide
+assert package_name in PRODUCT_GUIDE.read_text(encoding="utf-8")
+assert package_name in (SDK_ROOT / "README.md").read_text(encoding="utf-8")
 
 scope_labels = {
     "session": "Session",
@@ -101,6 +108,8 @@ for document in (
     ARCHITECTURE,
     READINESS,
     ANALYTICS_SPEC,
+    CONFIGURATION,
+    CICD,
     SDK_ROOT / "README.md",
 ):
     validate_local_links(document)

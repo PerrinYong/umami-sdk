@@ -18,7 +18,7 @@ if (-not (Test-Path -LiteralPath $artifactRoot -PathType Container)) {
     throw "SDK artifact directory does not exist: $artifactRoot"
 }
 
-$npmPackage = Get-ChildItem -LiteralPath $artifactRoot -Filter "pystone-analytics-*.tgz" -File |
+$npmPackage = Get-ChildItem -LiteralPath $artifactRoot -Filter "perrin-yong-umami-sdk-*.tgz" -File |
     Sort-Object LastWriteTimeUtc -Descending |
     Select-Object -First 1
 $nugetPackage = Get-ChildItem -LiteralPath $artifactRoot -Filter "Pystone.Analytics.*.nupkg" -File |
@@ -49,8 +49,8 @@ try {
         npm install --ignore-scripts --no-audit --no-fund $npmPackage.FullName | Out-Null
         Assert-NativeSuccess "npm package installation"
         node --input-type=module --eval @"
-const nodeSdk = await import('@pystone/analytics/node');
-const webSdk = await import('@pystone/analytics/web');
+const nodeSdk = await import('@perrin-yong/umami-sdk/node');
+const webSdk = await import('@perrin-yong/umami-sdk/web');
 if (typeof nodeSdk.createNodeAnalytics !== 'function' || typeof webSdk.createWebAnalytics !== 'function') {
   throw new Error('npm package exports are incomplete');
 }
