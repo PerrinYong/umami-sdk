@@ -32,7 +32,6 @@ export class UmamiHttpTransport implements AnalyticsTransport {
     const generation = this.sessionGeneration;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
-    timeout.unref?.();
     try {
       const response = await this.fetchImplementation(`${this.config.endpoint}/api/batch`, {
         method: 'POST',
