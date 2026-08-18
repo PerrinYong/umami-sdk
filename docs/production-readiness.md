@@ -1,6 +1,6 @@
 # Umami SDK 生产就绪验证
 
-本文记录 Pystone Analytics SDK 的生产故障模型、自动化验证范围和上线门禁。验证基线为 SDK `0.1.0`、Schema `1`、Policy `1`，并已对照 Umami submodule `de474a1da915d4666768cad0af0bed5b3449d661` 的 `/api/send`、`/api/batch` 和 Web Tracker 实现。
+本文记录 Pystone Analytics SDK 的生产故障模型、自动化验证范围和上线门禁。验证基线为 SDK `0.1.1`、Schema `1`、Policy `1`，并已对照 Umami submodule `de474a1da915d4666768cad0af0bed5b3449d661` 的 `/api/send`、`/api/batch` 和 Web Tracker 实现。
 
 ## 1. 核心保证
 
@@ -10,6 +10,7 @@ SDK 对宿主承诺：
 - 分析服务断网、超时、429、5xx、异常响应、部分失败和重试耗尽不会改变宿主返回值、UI、事务或退出码；
 - 诊断回调抛异常会被吞掉；后台 Worker 的非预期异常不会传播到宿主线程；
 - 队列、Batch、重试、响应体和持久队列文件都有硬上限；
+- 初始 Consent、Endpoint、canonical RFC 4122 Website ID 和可靠性参数在构造时校验；错误配置不会以“静默无数据”方式进入生产；
 - Consent 拒绝或撤回与并发上报互斥，调用返回后不保留待发事件或 Subject；
 - `disable`、Node `close`、Python `close` 和 .NET `DisposeAsync` 后 Client 是终态，不再接受事件；
 - 持久队列恢复时重新执行结构、Website、Schema、Identity 和隐私校验，篡改或损坏文件会被删除而不是上传；
@@ -40,6 +41,7 @@ Analytics 是 best-effort：进程崩溃、页面关闭、队列溢出、截止�
 | 合法、未注册、缺属性、未知属性、敏感值 | 已测 | 已测 | 已测 | 本地接受或拒绝 |
 | 1 万次突发上报 | 已测 | 已测 | 已测 | 队列保持上限，调用不抛异常 |
 | Transport 抛异常/永不返回 | 已测 | 已测 | 已测 | 热路径立即返回；关闭有截止时间 |
+| 自定义 Transport 在返回异步句柄前同步阻塞 | 不适用 | 已测 | Python daemon 隔离 | .NET 关闭截止时间仍有效；Python 返回后放弃 daemon Worker |
 | 408/429/5xx/4xx | 已测 | 已测 | 已测 | 可重试/永久失败分类正确 |
 | 畸形和超大 2xx 响应 | 已测 | 已测 | 已测 | 不崩溃、不错误重发 |
 | 重试、耗尽、永久失败、事件过期 | 已测 | 已测 | 已测 | 有限保留后丢弃 |
@@ -49,7 +51,7 @@ Analytics 是 best-effort：进程崩溃、页面关闭、队列溢出、截止�
 | 持久队列恢复、撤回、损坏、篡改 | 不适用 | 已测 | 已测 | 仅恢复仍符合当前策略的数据 |
 | Web Tracker 加载失败后重试 | 已测 | 不适用 | 不适用 | 失败隔离，下一事件可重试 |
 | 全局 Web Tracker 旁路 | 已测 | 不适用 | 不适用 | 未注册事件和非法 Identify 被阻断 |
-| 发布包真实安装 | npm | NuGet | wheel | 隔离目录安装、导入/编译成功 |
+| 发布包真实安装 | npm | NuGet | wheel | 隔离目录安装；npm JS 真实上报/类型编译、NuGet 消费者编译与 Client 构造、wheel Client 构造成功 |
 
 运行完整门禁：
 
@@ -57,7 +59,7 @@ Analytics 是 best-effort：进程崩溃、页面关闭、队列溢出、截止�
 .\tools\build-sdk.ps1
 ```
 
-该命令执行生成文件一致性、Schema、文档、三端测试、构建打包、SHA-256 和三个制品的隔离安装冒烟。CI 使用同一入口，避免本地与流水线出现两套标准。
+该命令执行生成文件一致性、Schema、文档契约、三端测试、构建打包、SHA-256 和三个制品的隔离安装冒烟。npm 冒烟不只检查导出名，还从打出的 tarball 创建真实 Node/Web Client、发送受控事件，并用包内 `.d.ts` 编译独立 TypeScript 消费者。CI 使用同一入口，避免本地与流水线出现两套标准。
 
 ## 4. Umami 兼容性结论
 
@@ -74,6 +76,7 @@ Analytics 是 best-effort：进程崩溃、页面关闭、队列溢出、截止�
 ## 5. 生产使用边界
 
 - 生产默认使用 SDK 内置 Transport。自定义 Transport 是测试/特殊集成扩展，必须自行保证线程安全、无副作用和截止时间；Node 与 .NET Client 会额外施加等待上限，Python 对不合作的同步自定义 Transport 只能让后台 daemon 线程退出宿主关键路径，无法强制终止第三方代码。
+- Browser 接入 SDK 后，业务事件只能调用 `analytics.track()`；直接调用 `window.umami` 或声明 `data-umami-event` 缺少 SDK 公共上下文，会被 `beforeSend` 拒绝。这是中央策略防旁路行为，不是 Tracker 故障。
 - `flush` 只允许在测试或受控关闭阶段调用。业务热路径永远不等待 Analytics。
 - 网络超时只能限制 SDK 等待时间，不能撤回已经到达服务端的请求；Consent 撤回会阻止新请求并清理队列，但不能“取消”已经被 Umami 接收的事件。
 - SDK 自动测试不能替代产品级 Staging 验收。每个产品仍需验证真实 Website ID、区域、CSP/代理、Consent UI、身份切换、Funnel、Retention 和实际宿主生命周期。

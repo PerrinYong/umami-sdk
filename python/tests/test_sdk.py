@@ -115,7 +115,7 @@ def config(**overrides: object) -> AnalyticsConfig:
         "environment": "staging",
         "surface": "cli",
         "product_version": "1.0.0",
-        "user_agent": "Test/1.0 Analytics/0.1.0",
+        "user_agent": "Test/1.0 Analytics/0.1.1",
         "flush_interval_seconds": 3600,
     }
     values.update(overrides)
@@ -288,6 +288,7 @@ class SdkTests(unittest.TestCase):
         started = time.monotonic()
         client.close()
         self.assertLess(time.monotonic() - started, 1.0)
+        client.close()
         self.assertEqual(
             client.track("feature_used", {"feature": "scan"}).code,
             "disabled",
@@ -342,6 +343,10 @@ class SdkTests(unittest.TestCase):
             {"max_retries": 11},
             {"timeout_seconds": math.nan},
             {"flush_interval_seconds": math.inf},
+            {"max_event_age_seconds": 30 * 86_400 + 0.1},
+            {"retry_base_seconds": 86_400 + 0.1},
+            {"website_id": "00000000-0000-0000-0000-000000000000"},
+            {"initial_consent": "granted"},
         ):
             with self.subTest(overrides=overrides):
                 with self.assertRaises(ValueError):

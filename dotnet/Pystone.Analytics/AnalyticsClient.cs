@@ -479,7 +479,15 @@ public sealed class AnalyticsClient : IAnalyticsClient
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(_options.Timeout);
-        var operation = _transport.SendAsync(requests, timeout.Token);
+        // A custom transport can execute synchronously before it returns its Task. Keep that
+        // extension point off the SDK worker so an implementation that ignores cancellation
+        // still cannot defeat FlushAsync/DisposeAsync deadlines. The built-in transport already
+        // yields on HttpClient and does not need the extra thread-pool hop.
+        var operation = _ownsTransport
+            ? _transport.SendAsync(requests, timeout.Token)
+            : Task.Run(
+                async () => await _transport.SendAsync(requests, timeout.Token).ConfigureAwait(false),
+                CancellationToken.None);
         try
         {
             return await operation.WaitAsync(timeout.Token).ConfigureAwait(false);

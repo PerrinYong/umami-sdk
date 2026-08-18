@@ -2,7 +2,7 @@
 
 本文是 Pystone 产品研发 Agent 接入自有 Umami SDK 的执行规范。目标是让负责网站、Desktop、OpenCode 插件、Node 服务或 Python CLI/Agent 的 LLM Agent，在不猜测接口、不复制 Umami Payload、不读取生产 Secret 的前提下，独立完成接入、测试和交付。
 
-当前 SDK 版本：`0.1.0`。事件 Schema 版本：`1`；Privacy Policy 版本：`1`。
+当前 SDK 版本：`0.1.1`。事件 Schema 版本：`1`；Privacy Policy 版本：`1`。
 
 ## 1. Agent 的任务边界
 
@@ -34,7 +34,7 @@
 
 ```yaml
 analytics_integration:
-  sdk_version: 0.1.0
+  sdk_version: 0.1.1
   policy_version: 1
   product: controlled-product-slug
   environment: staging             # staging 或 production
@@ -86,21 +86,26 @@ analytics_integration:
 | Windows Desktop | NuGet `.nupkg` | `Pystone.Analytics` | .NET 8 |
 | Python CLI、Agent、服务 | Python `.whl` | `pystone_analytics` | Python 3.10+ |
 
-在 umami-sdk 仓库的固定 commit 上生成制品：
+TypeScript 包已经公开发布到 npm，产品直接固定精确版本：
+
+```powershell
+npm install --save-exact @perrin-yong/umami-sdk@0.1.1
+```
+
+.NET 和 Python 当前没有发布到 NuGet.org/PyPI。只为这两个运行时，或需要归档全部制品时，在 umami-sdk 仓库的固定 Tag/Commit 上生成制品：
 
 ```powershell
 .\tools\build-sdk.ps1
 ```
 
-制品位于 `artifacts/sdk/`。将它复制到产品的私有制品位置，然后安装：
+制品位于 `artifacts/sdk/`。记录 SHA-256，将 `.nupkg`/`.whl` 复制到产品的私有制品位置，然后安装：
 
 ```powershell
-npm install @perrin-yong/umami-sdk@0.1.0
-dotnet add package Pystone.Analytics --version 0.1.0 --source <ARTIFACT_DIR>
-python -m pip install <ARTIFACT_DIR>\pystone_analytics-0.1.0-py3-none-any.whl
+dotnet add package Pystone.Analytics --version 0.1.1 --source <ARTIFACT_DIR>
+python -m pip install <ARTIFACT_DIR>\pystone_analytics-0.1.1-py3-none-any.whl
 ```
 
-产品必须固定 SDK 版本和制品校验值。不要从移动分支在线安装，也不要把 `typescript/` 源码目录当作 npm 包直接安装。
+产品必须提交 npm lockfile；.NET/Python 产品必须固定版本和制品校验值。不要从移动分支在线安装，也不要把 `typescript/`、`dotnet/` 或 `python/src/` 当作产品依赖。npm 只包含 Browser/Node；不要假定它能安装 .NET/Python。
 
 ## 4. 运行时契约：宿主优先
 
@@ -126,6 +131,18 @@ disable()
 | `flush` | 尝试发送待发队列 | 只用于测试或受控退出 |
 | `disable` | 永久禁用当前 Client，并清空状态 | 可以；重新启用需创建新 Client |
 
+真实方法名按语言映射：
+
+| 概念 | TypeScript | .NET | Python |
+| --- | --- | --- | --- |
+| `track` | `track()` | `Track()` | `track()` |
+| `identify` | `identify()` | `Identify()` | `identify()` |
+| `page` | `page()` | `Page()` | `page()` |
+| `setConsent` | `setConsent()` | `SetConsent()` | `set_consent()` |
+| `flush` | `flush()` | `FlushAsync()` | `flush()` |
+| `disable` | `disable()` | `Disable()` | `disable()` |
+| 终态关闭 | Node `close()`；Web `disable()` | `DisposeAsync()` / `await using` | `close()` / context manager |
+
 `accepted=true` 只表示事件通过本地规则并进入队列，不表示 Umami 已收到。DNS、TLS、超时、断网、429、5xx、Umami 停机、队列溢出和重试耗尽均不得改变宿主功能、业务返回值、UI 或退出码。
 
 `track()` 的返回对象包含：
@@ -138,7 +155,7 @@ eventId: 可选的本地队列/诊断 ID；不会上传到 Umami
 
 `onDiagnostic` 只在拒绝、丢弃或传输异常等诊断场景触发，不能把它当成“服务端已接收”回调。配置错误会在创建 Client 时快速失败，必须阻止错误配置发布。
 
-不要再把 SDK 包在 `Task.Run`、额外线程或额外 Promise 中。SDK 已完成异步隔离。
+不要再把 SDK 包在 `Task.Run`、额外线程或额外 Promise 中。SDK 已完成异步隔离。初始化配置错误会抛出并阻止启动，这属于应在构建/Staging 修复的部署错误；初始化成功后的网络、Umami、后台持久化和诊断回调故障才属于静默降级范围。
 
 ## 5. 公共配置
 
@@ -379,7 +396,7 @@ export const analytics = createNodeAnalytics({
   environment: process.env.APP_ENV === 'production' ? 'production' : 'staging',
   surface: 'backend',
   productVersion: process.env.APP_VERSION!,
-  userAgent: `MyProduct/${process.env.APP_VERSION} PystoneAnalytics/0.1.0`,
+  userAgent: `MyProduct/${process.env.APP_VERSION} PystoneAnalytics/0.1.1`,
   initialConsent: 'granted',
   onDiagnostic: diagnostic => incrementAnalyticsDiagnostic(diagnostic.code),
 });
@@ -405,7 +422,7 @@ sharedAnalytics.identify(request.user.subjectId);
 sharedAnalytics.track('purchase_completed', properties);
 ```
 
-当前 `0.1.0` 的正确边界：
+当前 `0.1.1` 的正确边界：
 
 - 不需要账户身份的系统级事件可以使用共享 Client；
 - 需要 Account Identity 的低频可信事件，先把最小、受控的分析事实放入产品自己的后台任务队列；
@@ -444,7 +461,7 @@ const analytics = createNodeAnalytics({
   environment,
   surface: 'opencode_plugin',
   productVersion: pluginVersion,
-  userAgent: `MyPlugin/${pluginVersion} PystoneAnalytics/0.1.0`,
+  userAgent: `MyPlugin/${pluginVersion} PystoneAnalytics/0.1.1`,
   initialConsent: restoredConsent,
 });
 
@@ -468,7 +485,7 @@ await using var analytics = new AnalyticsClient(new AnalyticsOptions
     Environment = "production",
     Surface = "desktop",
     ProductVersion = ProductVersion.Current,
-    UserAgent = $"MyProduct/{ProductVersion.Current} PystoneAnalytics/0.1.0",
+    UserAgent = $"MyProduct/{ProductVersion.Current} PystoneAnalytics/0.1.1",
     InitialConsent = restoredConsent,
     Platform = "windows",
     Architecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(),
@@ -510,7 +527,7 @@ analytics = AnalyticsClient(AnalyticsConfig(
     environment="production",
     surface="cli",
     product_version=PRODUCT_VERSION,
-    user_agent=f"MyProduct/{PRODUCT_VERSION} PystoneAnalytics/0.1.0",
+    user_agent=f"MyProduct/{PRODUCT_VERSION} PystoneAnalytics/0.1.1",
     initial_consent=restored_consent,
     platform="windows",
     persistent_queue_path=Path(product_private_data_dir) / "analytics-queue.json",
@@ -562,6 +579,8 @@ Web 只传规范化 Path 和可选 Title。不要传 `location.href`。Desktop�
 - 崩溃、强杀或超时后允许丢失 Analytics。
 
 Node `close()`、Python `close()` 和 .NET `DisposeAsync()` 完成后 Client 已终止，后续调用返回 `disabled`；需要重新启用时创建新 Client。产品不要注入自定义 Transport，除非已有独立测试证明其线程安全、超时和副作用边界。
+
+`.NET` 的 `await using` 会在作用域结束时调用 `DisposeAsync()`；不要再对同一实例并发执行新的业务上报。Node/Python 的 `close()` 可以重复调用，但产品生命周期仍应只登记一次关闭处理器。
 
 ## 10. 中央事件注册表
 
@@ -748,6 +767,11 @@ export function trackScanCompleted(durationBucket: DurationBucket) {
 - 模拟超时、429、5xx 和断网时，业务结果与退出码不变；
 - 队列满时丢弃 Analytics，不阻塞宿主；
 - 正常业务测试不依赖 Umami 在线。
+- 诊断回调抛异常时，业务方法仍返回且宿主不崩溃；
+- `disable()` 和终态关闭后，新事件返回 `disabled`；重复关闭不抛异常；
+- 如果启用持久队列，目录只读、磁盘满、文件损坏或文件被篡改时宿主继续运行；
+- 配置一个会阻塞或抛异常的测试 Transport，证明 `track/identify/page` 不会进入它；
+- Node/.NET 的关闭截止时间在不合作 Transport 下仍有效；Python `close()` 返回后允许放弃 daemon Worker。
 
 ### 15.4 身份
 
@@ -789,6 +813,8 @@ Consent unknown：确认没有 Tracker/API 请求
 - 抽样数据没有任何禁止字段或自由文本。
 
 然后模拟断网、慢网、429、5xx 和 Umami 停机，确认宿主继续正常工作。只有以上项目通过后，才替换 Production Website ID 并发送少量固定合成事件。
+
+产品验收必须使用浏览器 Network、测试 Transport 或入口日志证明“无请求/主流程不变”，不能只凭 `accepted=true` 推断服务端已经收到。SDK 自动测试通过也不等于某个产品已完成真实 CSP、代理、Bun/.NET/Python 版本和生命周期验收。
 
 ## 17. 完成标准
 

@@ -2,6 +2,8 @@
 
 目标为 .NET 8，无运行时第三方依赖。`Track`、`Identify` 和 `Page` 是同步的本地入队操作；后台 Task 批量调用 Umami。
 
+当前包不在 NuGet.org 发布。使用 SDK 固定 Tag/Commit 的 `tools/build-sdk.ps1` 生成 `.nupkg`，记录 SHA-256，并从产品私有制品目录安装 `Pystone.Analytics` 精确版本。
+
 ```csharp
 using Pystone.Analytics;
 
@@ -14,7 +16,7 @@ await using var analytics = new AnalyticsClient(new AnalyticsOptions
     Environment = "production",
     Surface = "desktop",
     ProductVersion = "1.0.0",
-    UserAgent = "MyProduct/1.0.0 PystoneAnalytics/0.1.0",
+    UserAgent = "MyProduct/1.0.0 PystoneAnalytics/0.1.1",
     InitialConsent = ConsentState.Unknown,
     PersistentQueuePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -38,6 +40,8 @@ catch (OperationCanceledException) { /* Analytics 可以丢弃。 */ }
 ```
 
 用户撤回 Consent 时调用 `SetConsent(ConsentState.Withdrawn)`；SDK 会清空队列并删除配置的队列文件，宿主还必须删除自己保存的原始 `installation_id`。
+
+`await using`/`DisposeAsync()` 是终态关闭；关闭后调用返回 `disabled`，重新启用必须创建新 Client。初始化配置错误会快速失败；初始化成功后的网络、Umami、持久队列和诊断回调故障不会传播到 `Track/Identify/Page`。
 
 ## 构建
 

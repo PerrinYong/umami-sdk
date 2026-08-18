@@ -7,7 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>Pystone.Analytics</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Description>Thin, privacy-first Umami SDK for .NET products.</Description>
     <Authors>Pystone</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>

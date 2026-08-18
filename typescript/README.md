@@ -3,7 +3,7 @@
 同一包提供 Browser 与 Node 两个入口，运行时依赖为零。
 
 ```bash
-npm install --save-exact @perrin-yong/umami-sdk@0.1.0
+npm install --save-exact @perrin-yong/umami-sdk@0.1.1
 ```
 
 包是 ESM、目标 ES2022，要求 Node.js `18.18+`。必须从 `/web` 或 `/node` 子路径导入，不提供根入口。Endpoint 与 Website ID 由产品环境配置注入；Website ID 不是 Secret，任何 HMAC Key、npm Token 或业务凭据都不能进入客户端配置。
@@ -54,7 +54,7 @@ const analytics = createNodeAnalytics({
   environment: 'production',
   surface: 'node',
   productVersion: '1.0.0',
-  userAgent: 'MyProduct/1.0.0 PystoneAnalytics/0.1.0',
+  userAgent: 'MyProduct/1.0.0 PystoneAnalytics/0.1.1',
   initialConsent: 'granted',
 });
 

@@ -1,6 +1,6 @@
 {
   "name": "@perrin-yong/umami-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Thin, privacy-first Umami SDK for Pystone products",
   "license": "UNLICENSED",
   "author": "Perrin Yong",

@@ -6,7 +6,7 @@
 
 ```yaml
 status: planned                         # planned / staging_verified / production
-sdk_version: 0.1.0
+sdk_version: 0.1.1
 schema_version: 1
 policy_version: 1
 product: <controlled-slug>
@@ -127,8 +127,12 @@ remote_disable_source: <trusted-product-config|not-applicable>
 | 敏感字段和值拒绝 | `<test>` | `<pass/fail>` |
 | 阻塞网络不阻塞业务 | `<test>` | `<pass/fail>` |
 | 429/5xx/断网不改变业务结果 | `<test>` | `<pass/fail>` |
+| 诊断回调抛异常不影响宿主 | `<test>` | `<pass/fail>` |
+| 队列满/事件过期有界丢弃 | `<test>` | `<pass/fail>` |
 | 撤回清理身份与队列 | `<test>` | `<pass/fail>` |
 | 账户切换隔离 | `<test>` | `<pass/fail>` |
+| 关闭截止时间与重复关闭 | `<test>` | `<pass/fail>` |
+| 持久队列损坏/只读/磁盘异常 | `<test-or-not-applicable>` | `<pass/fail/n-a>` |
 
 ## 9. Staging 验收
 
@@ -143,6 +147,8 @@ funnel: <pass/fail>
 retention_setup: <pass/fail>
 consent_network_check: <pass/fail>
 offline_and_slow_network: <pass/fail>
+umami_429_5xx: <pass/fail>
+shutdown_deadline: <pass/fail>
 forbidden_field_sample: <pass/fail>
 production_isolation: <pass/fail>
 ```

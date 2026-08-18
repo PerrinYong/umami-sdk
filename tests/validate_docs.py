@@ -48,13 +48,58 @@ sdk_version = versions.pop()
 package_name = typescript["name"]
 
 guide = GUIDE.read_text(encoding="utf-8")
+configuration = CONFIGURATION.read_text(encoding="utf-8")
+product_guide = PRODUCT_GUIDE.read_text(encoding="utf-8")
+readme = (SDK_ROOT / "README.md").read_text(encoding="utf-8")
 assert f"当前 SDK 版本：`{sdk_version}`" in guide
 assert f"事件 Schema 版本：`{registry['schema_version']}`" in guide
 assert f"Privacy Policy 版本：`{policy['policy_version']}`" in guide
 assert package_name == "@perrin-yong/umami-sdk"
 assert package_name in guide
-assert package_name in PRODUCT_GUIDE.read_text(encoding="utf-8")
-assert package_name in (SDK_ROOT / "README.md").read_text(encoding="utf-8")
+assert package_name in product_guide
+assert package_name in readme
+
+exact_npm_install = f"npm install --save-exact {package_name}@{sdk_version}"
+for source, contents in {
+    "README": readme,
+    "configuration guide": configuration,
+    "agent integration guide": guide,
+    "product integration guide": product_guide,
+}.items():
+    assert exact_npm_install in contents, f"{source} lacks the exact npm install command"
+
+for marker in (
+    "Pystone.Analytics",
+    "pystone_analytics",
+    "setConsent()",
+    "SetConsent()",
+    "set_consent()",
+    "DisposeAsync()",
+    "close()",
+    "accepted=true",
+    "Staging",
+):
+    assert marker in guide, f"Agent guide lacks required runtime contract: {marker}"
+
+assert "NuGet.org" in configuration and "PyPI" in configuration
+assert "不要尝试从 npm 安装 .NET/Python" in configuration
+assert "不使用 `data-umami-event`" in product_guide
+assert "会将它视为绕过中央 Schema 并阻断" in product_guide
+
+node_client = (SDK_ROOT / "typescript/src/node/client.ts").read_text(encoding="utf-8")
+dotnet_policy = (SDK_ROOT / "dotnet/Pystone.Analytics/PolicyEngine.cs").read_text(
+    encoding="utf-8"
+)
+python_policy = (SDK_ROOT / "python/src/pystone_analytics/policy.py").read_text(
+    encoding="utf-8"
+)
+assert "MAX_EVENT_AGE_MS = 30 * 24 * 60 * 60 * 1000" in node_client
+assert "MAX_RETRY_BASE_MS = 24 * 60 * 60 * 1000" in node_client
+assert "_options.MaxEventAge > TimeSpan.FromDays(30)" in dotnet_policy
+assert "_options.RetryBase > TimeSpan.FromDays(1)" in dotnet_policy
+assert "30 * 86_400" in python_policy and "86_400" in python_policy
+for marker in ("最大 30 天", "最大 24 小时", "64 MiB"):
+    assert marker in configuration, f"Configuration guide lacks reliability bound: {marker}"
 
 scope_labels = {
     "session": "Session",

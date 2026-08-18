@@ -42,7 +42,7 @@ context:
   environment: production
   surface: desktop
   product_version: 1.2.0
-  sdk_version: 0.1.0
+  sdk_version: 0.1.1
   platform: windows
   architecture: x64
   locale: zh-CN

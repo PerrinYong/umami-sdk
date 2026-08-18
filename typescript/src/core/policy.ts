@@ -18,6 +18,7 @@ const CONTEXT_VALUE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
 const HOSTNAME_PATTERN = /^[A-Za-z0-9.-]+$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SUBJECT_PATTERN = /^[A-Za-z0-9_-]+$/;
+const CONSENT_STATES = new Set(['unknown', 'granted', 'denied', 'withdrawn']);
 
 export class PolicyViolation extends Error {
   constructor(
@@ -97,6 +98,9 @@ export class PolicyEngine {
     if (!UUID_PATTERN.test(config.websiteId)) {
       throw new PolicyViolation({ code: 'invalid_config', detail: 'website_id' });
     }
+    if (config.initialConsent !== undefined && !CONSENT_STATES.has(config.initialConsent)) {
+      throw new PolicyViolation({ code: 'invalid_config', detail: 'initial_consent' });
+    }
     for (const [key, value] of [
       ['product', config.product],
       ['environment', config.environment],
@@ -115,7 +119,7 @@ export class PolicyEngine {
     }
     for (const [key, value] of [
       ['product_version', config.productVersion],
-      ['sdk_version', config.sdkVersion ?? '0.1.0'],
+      ['sdk_version', config.sdkVersion ?? '0.1.1'],
       ['platform', config.platform],
       ['architecture', config.architecture],
       ['locale', config.locale],
@@ -185,7 +189,7 @@ export class PolicyEngine {
       environment: this.config.environment,
       surface: this.config.surface,
       product_version: this.config.productVersion,
-      sdk_version: this.config.sdkVersion ?? '0.1.0',
+      sdk_version: this.config.sdkVersion ?? '0.1.1',
       consent_state: 'granted',
       policy_version: this.policy.policy_version,
       ...this.optionalContext(),
@@ -266,7 +270,7 @@ export class PolicyEngine {
       environment: this.config.environment,
       surface: this.config.surface,
       product_version: this.config.productVersion,
-      sdk_version: this.config.sdkVersion ?? '0.1.0',
+      sdk_version: this.config.sdkVersion ?? '0.1.1',
       consent_state: 'granted',
       policy_version: this.policy.policy_version,
       ...this.optionalContext(),

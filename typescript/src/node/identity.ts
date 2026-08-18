@@ -11,7 +11,7 @@ export function deriveInstallationSubjectId(productScope: string, installationId
     .digest('base64url');
 }
 
-export function deriveUserSubjectId(productKey: Buffer, internalUserId: string): string {
+export function deriveUserSubjectId(productKey: Uint8Array, internalUserId: string): string {
   if (productKey.length < 32 || !internalUserId) {
     throw new Error('a 32-byte productKey and internalUserId are required');
   }

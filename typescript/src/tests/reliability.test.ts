@@ -10,7 +10,7 @@ import {
 import { WebAnalyticsClient, type UmamiTracker } from '../web/index.js';
 import { baseConfig } from './helpers.js';
 
-const userAgent = 'Test/1.0 Analytics/0.1.0';
+const userAgent = 'Test/1.0 Analytics/0.1.1';
 
 class ScriptedTransport implements AnalyticsTransport {
   readonly batches: UmamiRequest[][] = [];
@@ -130,6 +130,7 @@ test('node transport timeout and close are bounded even when a custom transport 
   const closeStarted = Date.now();
   await client.close();
   assert.ok(Date.now() - closeStarted < 1_500, 'close exceeded its deadline');
+  await assert.doesNotReject(client.close(), 'close must be idempotent');
   assert.equal(client.track('feature_used', { feature: 'scan' }).code, 'disabled');
 });
 
@@ -144,6 +145,17 @@ test('node rejects reliability settings that could make resource use unbounded',
   assert.throws(() => make({ batchSize: 0 }), RangeError);
   assert.throws(() => make({ maxRetries: Number.POSITIVE_INFINITY }), RangeError);
   assert.throws(() => make({ timeoutMs: 60_001 }), RangeError);
+  assert.throws(() => make({ flushIntervalMs: 86_400_001 }), RangeError);
+  assert.throws(() => make({ maxEventAgeMs: 30 * 86_400_000 + 1 }), RangeError);
+  assert.throws(() => make({ retryBaseMs: 86_400_001 }), RangeError);
+  assert.throws(
+    () => make({ initialConsent: 'invalid' as never }),
+    error => (error as { diagnostic?: { code?: string } }).diagnostic?.code === 'invalid_config',
+  );
+  assert.throws(
+    () => make({ websiteId: '00000000-0000-0000-0000-000000000000' }),
+    error => (error as { diagnostic?: { code?: string } }).diagnostic?.code === 'invalid_config',
+  );
 });
 
 test('HTTP transport treats malformed success bodies as accepted and bounds cache state', async () => {

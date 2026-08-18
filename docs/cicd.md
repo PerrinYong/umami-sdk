@@ -19,9 +19,9 @@ npm 只分发 Browser/Node TypeScript 包。CI 仍会构建和测试 .NET、Pyth
 
 1. 校验 `VERSION`、三语言版本和 npm 发布元数据；
 2. 校验事件 Schema、Privacy Policy 和文档链接；
-3. 执行 TypeScript 24 项、Python 14 项和 .NET 场景测试；
+3. 执行 TypeScript、Python 和 .NET 的 Schema、Consent、Identity、并发、故障注入及生命周期测试；
 4. 生成 npm、NuGet、wheel；
-5. 在隔离临时目录实际安装三个制品并冒烟；
+5. 在隔离临时目录实际安装三个制品：npm 执行真实 Node/Web 调用并编译 `.d.ts` 消费者，NuGet/wheel 构造真实 Client；
 6. 确认生成器与构建没有留下未提交文件。
 
 CI 只有 `contents: read` 权限，不读取 npm Token，不发布任何包。
@@ -42,7 +42,7 @@ CI 只有 `contents: read` 权限，不读取 npm Token，不发布任何包。
 
 ## Token 配置
 
-首次发布使用 GitHub Repository Secret `NPM_TOKEN`。Token 必须是有权发布 `@perrin-yong` Scope 的 npm Granular Access Token，并允许 CI 发布所需的 2FA 行为。
+当前工作流使用 GitHub Repository Secret `NPM_TOKEN`（配置 Trusted Publishing 后可撤销）。Token 必须有权发布 `@perrin-yong` Scope，并允许 CI 发布所需的 2FA 行为。
 
 Token 只从私有文件写入 GitHub Secret，不能写入 `.npmrc`、Workflow、Shell 历史或 Git：
 
@@ -55,9 +55,9 @@ gh secret list --repo PerrinYong/umami-sdk
 
 GitHub 只允许查看 Secret 名称，不能回读值。Token 轮换后重复执行同一命令。
 
-## 首次发布
+## 发布一个版本
 
-1. 确认 npm 用户拥有 `@perrin-yong` Scope；
+1. 确认 npm 用户拥有 `@perrin-yong` Scope；首次发布时确认包名可用；
 2. 确认 `NPM_TOKEN` Secret 已配置；
 3. 在本地执行完整验证：
 
@@ -70,7 +70,7 @@ python tools/check_version.py
 5. 创建与 `VERSION` 一致的 GitHub Release，例如：
 
 ```powershell
-gh release create v0.1.0 `
+gh release create v0.1.1 `
   --repo PerrinYong/umami-sdk `
   --target main `
   --generate-notes `
@@ -88,8 +88,8 @@ gh run list --repo PerrinYong/umami-sdk --workflow npm-release.yml
 7. 验证消费者安装：
 
 ```bash
-npm view @perrin-yong/umami-sdk@0.1.0 version
-npm install @perrin-yong/umami-sdk@0.1.0
+npm view @perrin-yong/umami-sdk@0.1.1 version
+npm install --save-exact @perrin-yong/umami-sdk@0.1.1
 ```
 
 ## 后续版本

@@ -44,6 +44,8 @@ export interface NodeAnalyticsConfig extends AnalyticsConfig {
 export class NodeAnalyticsClient implements AnalyticsClient {
   private static readonly MAX_QUEUE_CAPACITY = 10_000;
   private static readonly MAX_RETRIES = 10;
+  private static readonly MAX_EVENT_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+  private static readonly MAX_RETRY_BASE_MS = 24 * 60 * 60 * 1000;
   private readonly policy: PolicyEngine;
   private readonly transport: AnalyticsTransport;
   private readonly queueCapacity: number;
@@ -83,8 +85,14 @@ export class NodeAnalyticsClient implements AnalyticsClient {
       'maxEventAgeMs',
       config.maxEventAgeMs ?? 24 * 60 * 60 * 1000,
       1000,
+      NodeAnalyticsClient.MAX_EVENT_AGE_MS,
     );
-    this.retryBaseMs = this.numberOption('retryBaseMs', config.retryBaseMs ?? 500, 100);
+    this.retryBaseMs = this.numberOption(
+      'retryBaseMs',
+      config.retryBaseMs ?? 500,
+      100,
+      NodeAnalyticsClient.MAX_RETRY_BASE_MS,
+    );
     this.now = config.now ?? Date.now;
     this.random = config.random ?? Math.random;
     this.closeTimeoutMs = this.numberOption('timeoutMs', config.timeoutMs ?? 3000, 250, 60_000);

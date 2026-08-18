@@ -45,6 +45,7 @@ internal sealed class PolicyEngine
     private static readonly Regex SlugPattern = new("^[a-z0-9][a-z0-9_-]*$", RegexOptions.CultureInvariant);
     private static readonly Regex ContextValuePattern = new("^[A-Za-z0-9][A-Za-z0-9._+-]*$", RegexOptions.CultureInvariant);
     private static readonly Regex HostnamePattern = new("^[A-Za-z0-9.-]+$", RegexOptions.CultureInvariant);
+    private static readonly Regex WebsiteIdPattern = new("^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", RegexOptions.CultureInvariant);
     private static readonly Regex SubjectPattern = new("^[A-Za-z0-9_-]+$", RegexOptions.CultureInvariant);
     private readonly AnalyticsOptions _options;
     private readonly Dictionary<string, EventDefinition> _events;
@@ -389,6 +390,10 @@ internal sealed class PolicyEngine
             || _options.Endpoint.PathAndQuery != "/"
             || !string.IsNullOrEmpty(_options.Endpoint.Fragment))
             throw new ArgumentException("Endpoint must not contain a path, query or fragment.");
+        if (!WebsiteIdPattern.IsMatch(_options.WebsiteId.ToString("D")))
+            throw new ArgumentException("WebsiteId must be an RFC 4122 UUID.");
+        if (!Enum.IsDefined(_options.InitialConsent))
+            throw new ArgumentException("InitialConsent is invalid.");
         foreach (var value in new[] { _options.Product, _options.Environment, _options.Surface })
         {
             if (!SlugPattern.IsMatch(value) || value.Length > 64) throw new ArgumentException("Invalid product context slug.");
@@ -424,7 +429,8 @@ internal sealed class PolicyEngine
             || _options.MaxRetries is < 0 or > 10
             || _options.MaxEventAge <= TimeSpan.Zero
             || _options.MaxEventAge > TimeSpan.FromDays(30)
-            || _options.RetryBase <= TimeSpan.Zero)
+            || _options.RetryBase <= TimeSpan.Zero
+            || _options.RetryBase > TimeSpan.FromDays(1))
             throw new ArgumentOutOfRangeException(nameof(_options.Timeout));
     }
 

@@ -209,15 +209,15 @@ consent_state, policy_version
 
 产品业务代码只提供事件特有属性，例如 `feature`、`result`、`error_category` 和 `duration_bucket`。
 
-SDK 根目录运行 `.\tools\build-sdk.ps1` 后，产品从 `artifacts/sdk/` 安装固定版本制品：
+TypeScript/Browser/Node 从公共 npm 安装精确版本；.NET/Python 当前从固定 SDK Tag/Commit 运行 `.\tools\build-sdk.ps1` 后，使用 `artifacts/sdk/` 中的内部制品：
 
 ```powershell
-npm install @perrin-yong/umami-sdk@0.1.0
-dotnet add package Pystone.Analytics --version 0.1.0 --source <PATH_TO_ARTIFACTS>
-python -m pip install <PATH_TO_ARTIFACTS>\pystone_analytics-0.1.0-py3-none-any.whl
+npm install --save-exact @perrin-yong/umami-sdk@0.1.1
+dotnet add package Pystone.Analytics --version 0.1.1 --source <PATH_TO_ARTIFACTS>
+python -m pip install <PATH_TO_ARTIFACTS>\pystone_analytics-0.1.1-py3-none-any.whl
 ```
 
-不要把根工程的移动分支作为产品构建时的在线依赖。升级 SDK 时同时审阅事件 Schema/Policy 变化并先在 Staging 验证。
+npm 产品提交 lockfile；.NET/Python 产品记录制品 SHA-256。不要把根工程的移动分支或源码目录作为产品构建时的依赖，也不要假定 `.nupkg`/`.whl` 已发布到公共 Registry。升级 SDK 时同时审阅事件 Schema/Policy 变化并先在 Staging 验证。
 
 ## 5. Consent 生命周期
 
@@ -320,9 +320,9 @@ analytics.track('download_clicked', {
 
 事件名使用小写 `snake_case`，描述已经发生的事实。SDK 使用比 Umami 服务端更严格的本地上限和字段 allowlist，并自动注入公共上下文。调用同步返回，不要 `await`。
 
-### 7.2 HTML 声明式事件
+### 7.2 不使用 HTML 声明式事件
 
-简单点击可用 `data-umami-event`：
+本工程接入 SDK 后，不使用 `data-umami-event`：
 
 ```html
 <button
@@ -333,7 +333,7 @@ analytics.track('download_clicked', {
 </button>
 ```
 
-声明式附加属性都会保存为字符串，也不容易统一注入 Schema 与隐私过滤。只建议用于少量固定枚举；动态值、数字、布尔值和重要转化使用 Adapter/JavaScript。
+上面的代码只用于识别并删除旧接入，不能作为新实现。声明式事件不会经过 `analytics.track()` 注入公共上下文；SDK 配置的 `beforeSend` 会将它视为绕过中央 Schema 并阻断。所有业务事件统一调用 `analytics.track()`。静态 HTML 若完全不使用本 SDK，只能按第 10 节“后备协议”的责任边界自行实现 Consent、allowlist、超时和故障隔离，不能声称已经接入 SDK。
 
 ### 7.3 常用网站事件
 
@@ -405,11 +405,10 @@ subject_id = Base64URL(SHA-256(product_scope || installation_id))
 
 ## 9. Node.js 后端接入
 
-默认使用本工程 SDK；它比直接调用官方 Node Client 多了统一 Schema、隐私检查、Consent 和后台队列。先在根工程固定 commit 上构建，再把版本化制品放入产品自己的私有依赖源或制品目录：
+默认使用本工程 SDK；它比直接调用官方 Node Client 多了统一 Schema、隐私检查、Consent 和后台队列。Node 包从公共 npm 固定精确版本安装：
 
 ```powershell
-.\tools\build-sdk.ps1
-npm install @perrin-yong/umami-sdk@0.1.0
+npm install --save-exact @perrin-yong/umami-sdk@0.1.1
 ```
 
 初始化一次，业务路径不 `await track()`：
@@ -425,7 +424,7 @@ const analytics = createNodeAnalytics({
   environment: 'production',
   surface: 'backend',
   productVersion: '1.2.0',
-  userAgent: 'MyProduct/1.2.0 PystoneAnalytics/0.1.0',
+  userAgent: 'MyProduct/1.2.0 PystoneAnalytics/0.1.1',
   initialConsent: 'granted',
 });
 ```
@@ -451,7 +450,7 @@ analytics.track('operation_completed', {
 ```http
 POST /api/send
 Content-Type: application/json
-User-Agent: MyProduct/1.2.0 Analytics/0.1.0
+User-Agent: MyProduct/1.2.0 Analytics/0.1.1
 ```
 
 完整事件示例：
@@ -471,7 +470,7 @@ User-Agent: MyProduct/1.2.0 Analytics/0.1.0
       "environment": "production",
       "surface": "desktop",
       "product_version": "1.2.0",
-      "sdk_version": "0.1.0",
+      "sdk_version": "0.1.1",
       "platform": "windows",
       "architecture": "x64",
       "feature": "agent_run",
@@ -554,7 +553,7 @@ const analytics = createNodeAnalytics({
   environment,
   surface: 'opencode_plugin',
   productVersion: pluginVersion,
-  userAgent: `MyPlugin/${pluginVersion} PystoneAnalytics/0.1.0`,
+  userAgent: `MyPlugin/${pluginVersion} PystoneAnalytics/0.1.1`,
 });
 
 analytics.setConsent('granted');
@@ -580,7 +579,7 @@ await using var analytics = new AnalyticsClient(new AnalyticsOptions
     Environment = "production",
     Surface = "desktop",
     ProductVersion = "1.2.0",
-    UserAgent = "MyProduct/1.2.0 PystoneAnalytics/0.1.0",
+    UserAgent = "MyProduct/1.2.0 PystoneAnalytics/0.1.1",
     PersistentQueuePath = Path.Combine(productPrivateDataDirectory, "analytics-queue.json"),
 });
 
@@ -615,7 +614,7 @@ analytics = AnalyticsClient(AnalyticsConfig(
     environment="production",
     surface="cli",
     product_version="1.2.0",
-    user_agent="MyCli/1.2.0 PystoneAnalytics/0.1.0",
+    user_agent="MyCli/1.2.0 PystoneAnalytics/0.1.1",
     initial_consent=ConsentState.GRANTED,
     persistent_queue_path=product_private_data_dir / "analytics-queue.json",
 ))

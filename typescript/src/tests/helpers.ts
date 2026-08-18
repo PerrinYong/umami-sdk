@@ -9,7 +9,7 @@ export function baseConfig(overrides: Partial<AnalyticsConfig> = {}): AnalyticsC
     environment: 'staging',
     surface: 'test',
     productVersion: '1.0.0',
-    sdkVersion: '0.1.0',
+    sdkVersion: '0.1.1',
     ...overrides,
   };
 }

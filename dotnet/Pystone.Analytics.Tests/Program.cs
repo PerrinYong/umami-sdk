@@ -20,7 +20,7 @@ var options = new AnalyticsOptions
     Environment = "staging",
     Surface = "desktop",
     ProductVersion = "1.0.0",
-    UserAgent = "Test/1.0 Analytics/0.1.0",
+    UserAgent = "Test/1.0 Analytics/0.1.1",
     FlushInterval = TimeSpan.FromHours(1),
     OnDiagnostic = diagnostics.Add,
 };
@@ -236,12 +236,32 @@ Assert(deadlineClient.Track("feature_used", new Dictionary<string, object?>
     ["feature"] = "scan",
 }).Code == "disabled", "Disposed clients must reject future events.");
 
+var synchronouslyBlockingTransport = new SynchronouslyBlockingTransport();
+var synchronousDeadlineClient = new AnalyticsClient(deadlineOptions, synchronouslyBlockingTransport);
+synchronousDeadlineClient.Track("feature_used", new Dictionary<string, object?> { ["feature"] = "scan" });
+await synchronouslyBlockingTransport.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
+var synchronousDisposeTimer = Stopwatch.StartNew();
+await synchronousDeadlineClient.DisposeAsync();
+Assert(synchronousDisposeTimer.Elapsed < TimeSpan.FromSeconds(1),
+    "Dispose must bound a custom transport that blocks before returning its Task.");
+synchronouslyBlockingTransport.Release.Set();
+
 AssertThrows<ArgumentOutOfRangeException>(() => new AnalyticsClient(
     CopyOptions(options, queueCapacity: 10_001), new FakeTransport()));
 AssertThrows<ArgumentOutOfRangeException>(() => new AnalyticsClient(
     CopyOptions(options, maxRetries: 11), new FakeTransport()));
 AssertThrows<ArgumentOutOfRangeException>(() => new AnalyticsClient(
     CopyOptions(options, timeout: TimeSpan.FromSeconds(61)), new FakeTransport()));
+AssertThrows<ArgumentOutOfRangeException>(() => new AnalyticsClient(
+    CopyOptions(options, maxEventAge: TimeSpan.FromDays(30) + TimeSpan.FromMilliseconds(1)),
+    new FakeTransport()));
+AssertThrows<ArgumentOutOfRangeException>(() => new AnalyticsClient(
+    CopyOptions(options, retryBase: TimeSpan.FromDays(1) + TimeSpan.FromMilliseconds(1)),
+    new FakeTransport()));
+AssertThrows<ArgumentException>(() => new AnalyticsClient(
+    CopyOptions(options, websiteId: Guid.Empty), new FakeTransport()));
+AssertThrows<ArgumentException>(() => new AnalyticsClient(
+    CopyOptions(options, initialConsent: (ConsentState)999), new FakeTransport()));
 
 var httpHandler = new ScriptedHttpHandler(
     new(HttpStatusCode.OK) { Content = new StringContent("not-json", Encoding.UTF8, "application/json") },
@@ -280,10 +300,13 @@ static AnalyticsOptions CopyOptions(
     int? queueCapacity = null,
     int? maxRetries = null,
     TimeSpan? timeout = null,
+    TimeSpan? maxEventAge = null,
+    TimeSpan? retryBase = null,
+    Guid? websiteId = null,
     Action<AnalyticsDiagnostic>? onDiagnostic = null) => new()
 {
     Endpoint = source.Endpoint,
-    WebsiteId = source.WebsiteId,
+    WebsiteId = websiteId ?? source.WebsiteId,
     Hostname = source.Hostname,
     Product = source.Product,
     Environment = source.Environment,
@@ -304,8 +327,8 @@ static AnalyticsOptions CopyOptions(
     MaxRetries = maxRetries ?? source.MaxRetries,
     Timeout = timeout ?? source.Timeout,
     FlushInterval = TimeSpan.FromHours(1),
-    MaxEventAge = source.MaxEventAge,
-    RetryBase = source.RetryBase,
+    MaxEventAge = maxEventAge ?? source.MaxEventAge,
+    RetryBase = retryBase ?? source.RetryBase,
     PersistentQueuePath = source.PersistentQueuePath,
     OnDiagnostic = onDiagnostic ?? source.OnDiagnostic,
 };
@@ -376,6 +399,22 @@ internal sealed class NeverCompletingTransport : IAnalyticsTransport
         Started.TrySetResult(true);
         return new TaskCompletionSource<TransportResult>(
             TaskCreationOptions.RunContinuationsAsynchronously).Task;
+    }
+}
+
+internal sealed class SynchronouslyBlockingTransport : IAnalyticsTransport
+{
+    public TaskCompletionSource<bool> Started { get; } =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public ManualResetEventSlim Release { get; } = new(false);
+
+    public Task<TransportResult> SendAsync(
+        IReadOnlyList<UmamiRequest> requests,
+        CancellationToken cancellationToken = default)
+    {
+        Started.TrySetResult(true);
+        Release.Wait();
+        return Task.FromResult(new TransportResult(TransportOutcome.Success));
     }
 }
 

@@ -46,7 +46,7 @@ public sealed class AnalyticsOptions
     public required string Surface { get; init; }
     public required string ProductVersion { get; init; }
     public required string UserAgent { get; init; }
-    public string SdkVersion { get; init; } = "0.1.0";
+    public string SdkVersion { get; init; } = "0.1.1";
     public string? Platform { get; init; }
     public string? Architecture { get; init; }
     public string? Locale { get; init; }

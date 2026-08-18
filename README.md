@@ -4,13 +4,15 @@
 
 SDK 不复制 Umami 的 Dashboard、查询 API 或业务数据库，也不建立通用插件系统。当前没有运行时第三方依赖。
 
-TypeScript/Browser/Node 包通过 npm 分发：
+TypeScript/Browser/Node 包通过公共 npm 分发：
 
 ```bash
-npm install --save-exact @perrin-yong/umami-sdk@0.1.0
+npm install --save-exact @perrin-yong/umami-sdk@0.1.1
 ```
 
 配置字段、区域选择、Consent/Identity 生命周期和完整示例见 [`docs/configuration.md`](docs/configuration.md)；版本、测试、GitHub Release 和 npm 发布流程见 [`docs/cicd.md`](docs/cicd.md)。
+
+.NET 与 Python 当前不发布到 NuGet.org/PyPI；它们使用固定 Release/Commit 运行 `tools/build-sdk.ps1` 生成的内部 `.nupkg`/`.whl`。不要把 npm、NuGet 和 Python 的分发状态混为一谈。
 
 ## 第一性原理
 
@@ -90,7 +92,7 @@ python -m unittest discover -s python/tests -v
 
 ## 版本与发布
 
-当前版本为 `0.1.0`。TypeScript 包发布为 `@perrin-yong/umami-sdk`；产品必须固定版本，不使用浮动的 `latest` 做不可控升级。发布包必须同时固定 SDK 版本、事件 Schema 版本和 Policy Version。
+当前版本为 `0.1.1`。TypeScript 包发布为 `@perrin-yong/umami-sdk`；产品必须固定版本，不使用浮动的 `latest` 做不可控升级。发布包必须同时固定 SDK 版本、事件 Schema 版本和 Policy Version。
 
 在 SDK 根目录统一生成三种安装制品：
 
@@ -98,6 +100,6 @@ python -m unittest discover -s python/tests -v
 .\tools\build-sdk.ps1
 ```
 
-输出位于忽略 Git 的 `artifacts/sdk/`，脚本会先执行 Schema 与全部运行时测试，并打印每个制品的 SHA-256。产品应固定安装这里生成的 `.tgz`、`.nupkg` 或 `.whl`，不要直接依赖移动中的源码目录。
+输出位于忽略 Git 的 `artifacts/sdk/`，脚本会先执行 Schema 与全部运行时测试，并打印每个制品的 SHA-256。npm 产品使用公开发布的固定版本；`.tgz` 用于发布前/离线消费者验证，.NET/Python 产品固定安装这里生成的 `.nupkg`/`.whl`。任何产品都不要直接依赖移动中的源码目录。
 
 详细设计见 [`docs/architecture.md`](docs/architecture.md)，事件、身份和隐私规范见 [`docs/analytics-spec.md`](docs/analytics-spec.md)。人工使用与后台分析见 [`docs/product-integration.md`](docs/product-integration.md)；产品研发 Agent 应使用 [`docs/integration-guide.md`](docs/integration-guide.md)，并填写 [`docs/product-integration-template.md`](docs/product-integration-template.md)。npm 发布由 GitHub Release 驱动，详见 [`docs/cicd.md`](docs/cicd.md)。

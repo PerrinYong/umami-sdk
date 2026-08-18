@@ -5,10 +5,10 @@ import json
 import math
 import re
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit
-from uuid import UUID, uuid4
+from uuid import RFC_4122, UUID, uuid4
 
 from ._generated_policy import EVENT_REGISTRY_JSON, PRIVACY_POLICY_JSON
-from .models import AnalyticsConfig, AnalyticsProperties, EventDefinition
+from .models import AnalyticsConfig, AnalyticsProperties, ConsentState, EventDefinition
 
 
 EVENT_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -356,9 +356,17 @@ class PolicyEngine:
         ):
             raise ValueError("endpoint must not contain a path, query or fragment")
         try:
-            UUID(self.config.website_id)
-        except ValueError as error:
+            website_id = UUID(self.config.website_id)
+        except (AttributeError, TypeError, ValueError) as error:
             raise ValueError("invalid website_id") from error
+        if (
+            str(website_id) != self.config.website_id.lower()
+            or website_id.variant != RFC_4122
+            or website_id.version not in range(1, 9)
+        ):
+            raise ValueError("website_id must be a canonical RFC 4122 UUID")
+        if not isinstance(self.config.initial_consent, ConsentState):
+            raise ValueError("invalid initial_consent")
         for value in (self.config.product, self.config.environment, self.config.surface):
             if not SLUG_PATTERN.fullmatch(value) or len(value) > 64:
                 raise ValueError("invalid product context slug")
