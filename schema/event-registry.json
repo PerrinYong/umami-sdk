@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "events": {
+    "contact_requested": {
+      "version": 1,
+      "purpose": "Measure qualified contact intent",
+      "identity_scope": "session",
+      "required": ["contact_type"],
+      "optional": []
+    },
+    "download_clicked": {
+      "version": 1,
+      "purpose": "Measure product download conversion",
+      "identity_scope": "session",
+      "required": ["artifact_type", "channel"],
+      "optional": []
+    },
+    "feature_used": {
+      "version": 1,
+      "purpose": "Measure feature adoption",
+      "identity_scope": "installation",
+      "required": ["feature"],
+      "optional": ["result"]
+    },
+    "feedback_submitted": {
+      "version": 1,
+      "purpose": "Measure feedback channel adoption without collecting content",
+      "identity_scope": "installation",
+      "required": ["feedback_type"],
+      "optional": []
+    },
+    "license_activated": {
+      "version": 1,
+      "purpose": "Measure trusted license activation",
+      "identity_scope": "account",
+      "required": ["license_category"],
+      "optional": ["channel"]
+    },
+    "operation_cancelled": {
+      "version": 1,
+      "purpose": "Measure explicitly cancelled operations separately from failures",
+      "identity_scope": "installation",
+      "required": ["feature"],
+      "optional": ["duration_bucket"]
+    },
+    "operation_completed": {
+      "version": 1,
+      "purpose": "Measure successful core operations",
+      "identity_scope": "installation",
+      "required": ["feature", "duration_bucket"],
+      "optional": ["result"]
+    },
+    "operation_failed": {
+      "version": 1,
+      "purpose": "Measure operation reliability using controlled error categories",
+      "identity_scope": "installation",
+      "required": ["feature", "error_category"],
+      "optional": ["duration_bucket"]
+    },
+    "operation_started": {
+      "version": 1,
+      "purpose": "Measure the start of an operation funnel",
+      "identity_scope": "installation",
+      "required": ["feature"],
+      "optional": []
+    },
+    "outbound_link_clicked": {
+      "version": 1,
+      "purpose": "Measure valuable outbound navigation",
+      "identity_scope": "session",
+      "required": ["target_domain", "link_category"],
+      "optional": []
+    },
+    "product_activated": {
+      "version": 1,
+      "purpose": "Measure first value realization",
+      "identity_scope": "installation",
+      "required": ["activation_type"],
+      "optional": []
+    },
+    "product_started": {
+      "version": 1,
+      "purpose": "Measure starts and version distribution",
+      "identity_scope": "installation",
+      "required": [],
+      "optional": []
+    },
+    "purchase_completed": {
+      "version": 1,
+      "purpose": "Measure trusted purchase conversion and revenue",
+      "identity_scope": "account",
+      "required": ["revenue", "currency"],
+      "optional": ["sku", "transaction_id", "plan"]
+    },
+    "refund_completed": {
+      "version": 1,
+      "purpose": "Measure trusted refund outcomes",
+      "identity_scope": "account",
+      "required": ["revenue", "currency"],
+      "optional": ["sku", "transaction_id", "plan"]
+    },
+    "signup_completed": {
+      "version": 1,
+      "purpose": "Measure registration conversion",
+      "identity_scope": "account",
+      "required": ["method_category"],
+      "optional": ["channel"]
+    },
+    "signup_started": {
+      "version": 1,
+      "purpose": "Measure registration funnel entry",
+      "identity_scope": "session",
+      "required": ["entry_point"],
+      "optional": ["channel"]
+    },
+    "subscription_started": {
+      "version": 1,
+      "purpose": "Measure trusted subscription conversion and revenue",
+      "identity_scope": "account",
+      "required": ["plan", "revenue", "currency"],
+      "optional": ["sku", "transaction_id", "channel"]
+    },
+    "update_installed": {
+      "version": 1,
+      "purpose": "Measure product version migration",
+      "identity_scope": "installation",
+      "required": ["from_version", "to_version"],
+      "optional": []
+    },
+    "user_logged_in": {
+      "version": 1,
+      "purpose": "Measure successful login adoption",
+      "identity_scope": "account",
+      "required": ["method_category"],
+      "optional": []
+    }
+  }
+}

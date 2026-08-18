@@ -1,0 +1,14 @@
+/artifacts/
+/typescript/node_modules/
+/typescript/dist/
+/dotnet/**/bin/
+/dotnet/**/obj/
+/python/build/
+/python/dist/
+/python/**/*.egg-info/
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

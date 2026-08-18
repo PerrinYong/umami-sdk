@@ -1,0 +1,39 @@
+{
+  "name": "@pystone/analytics",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Thin, privacy-first Umami SDK for Pystone products",
+  "type": "module",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "files": [
+    "dist/core",
+    "dist/web",
+    "dist/node",
+    "README.md"
+  ],
+  "exports": {
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./web": {
+      "types": "./dist/web/index.d.ts",
+      "import": "./dist/web/index.js"
+    },
+    "./node": {
+      "types": "./dist/node/index.d.ts",
+      "import": "./dist/node/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test dist/tests/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}
