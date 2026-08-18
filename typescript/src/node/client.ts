@@ -192,7 +192,6 @@ export class NodeAnalyticsClient implements AnalyticsClient {
         this.flush(),
         new Promise<void>(resolve => {
           timeout = setTimeout(resolve, this.closeTimeoutMs);
-          timeout.unref?.();
         }),
       ]);
     } finally {
@@ -328,7 +327,6 @@ export class NodeAnalyticsClient implements AnalyticsClient {
         Promise.resolve().then(() => this.transport.send(requests)),
         new Promise<TransportResult>(resolve => {
           timeout = setTimeout(() => resolve({ kind: 'retryable' }), this.closeTimeoutMs);
-          timeout.unref?.();
         }),
       ]);
     } finally {
