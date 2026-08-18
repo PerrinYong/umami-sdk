@@ -34,9 +34,9 @@ CI 只有 `contents: read` 权限，不读取 npm Token，不发布任何包。
 2. 验证 Tag 必须等于 `v<VERSION>`；
 3. 验证该提交属于 `main`；
 4. 重新执行完整测试和制品隔离安装；
-5. 拒绝覆盖 npm 上已经存在的版本；
+5. 检查 npm 上的同版本：不存在才发布；已存在且 SHA-512 完全相同则幂等继续；内容不同立即拒绝；
 6. 发布已经通过安装测试的 `.tgz`，并生成 provenance；
-7. 从 npm Registry 回读并核对版本。
+7. 从 npm Registry 回读并核对版本；Registry 首次发布存在传播延迟，Workflow 最多等待五分钟。
 
 发布 Job 使用 GitHub-hosted Ubuntu、Node 24、npm 11.8.0，并只授予 `contents: read` 与 `id-token: write`。
 
