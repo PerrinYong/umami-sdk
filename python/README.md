@@ -16,7 +16,7 @@ analytics = AnalyticsClient(AnalyticsConfig(
     environment="production",
     surface="cli",
     product_version="1.0.0",
-    user_agent="MyProduct/1.0.0 PystoneAnalytics/0.1.1",
+    user_agent="MyProduct/1.0.0 UmamiSdk/0.1.1",
     initial_consent=ConsentState.GRANTED,
     # 使用宿主已确定的私有数据目录，不要使用当前工作目录。
     persistent_queue_path=Path(product_private_data_dir) / "analytics-queue.json",

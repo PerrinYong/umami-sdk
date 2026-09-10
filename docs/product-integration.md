@@ -424,7 +424,7 @@ const analytics = createNodeAnalytics({
   environment: 'production',
   surface: 'backend',
   productVersion: '1.2.0',
-  userAgent: 'MyProduct/1.2.0 PystoneAnalytics/0.1.1',
+  userAgent: 'MyProduct/1.2.0 UmamiSdk/0.1.1',
   initialConsent: 'granted',
 });
 ```
@@ -553,7 +553,7 @@ const analytics = createNodeAnalytics({
   environment,
   surface: 'opencode_plugin',
   productVersion: pluginVersion,
-  userAgent: `MyPlugin/${pluginVersion} PystoneAnalytics/0.1.1`,
+  userAgent: `MyPlugin/${pluginVersion} UmamiSdk/0.1.1`,
 });
 
 analytics.setConsent('granted');
@@ -579,7 +579,7 @@ await using var analytics = new AnalyticsClient(new AnalyticsOptions
     Environment = "production",
     Surface = "desktop",
     ProductVersion = "1.2.0",
-    UserAgent = "MyProduct/1.2.0 PystoneAnalytics/0.1.1",
+    UserAgent = "MyProduct/1.2.0 UmamiSdk/0.1.1",
     PersistentQueuePath = Path.Combine(productPrivateDataDirectory, "analytics-queue.json"),
 });
 
@@ -614,7 +614,7 @@ analytics = AnalyticsClient(AnalyticsConfig(
     environment="production",
     surface="cli",
     product_version="1.2.0",
-    user_agent="MyCli/1.2.0 PystoneAnalytics/0.1.1",
+    user_agent="MyCli/1.2.0 UmamiSdk/0.1.1",
     initial_consent=ConsentState.GRANTED,
     persistent_queue_path=product_private_data_dir / "analytics-queue.json",
 ))

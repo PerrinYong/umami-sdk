@@ -1,4 +1,4 @@
-# Pystone Analytics SDK
+# Umami Analytics SDK
 
 这是位于产品代码与 Umami 之间的薄 SDK。它只解决每个产品都必须正确解决、且直接调用 Umami 很容易做错的部分：事件语义、Consent、伪名身份、隐私校验、异步队列、批量发送、有限重试和静默降级。
 

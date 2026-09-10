@@ -1,6 +1,6 @@
 # Umami SDK 生产就绪验证
 
-本文记录 Pystone Analytics SDK 的生产故障模型、自动化验证范围和上线门禁。验证基线为 SDK `0.1.1`、Schema `1`、Policy `1`，并已对照 Umami submodule `de474a1da915d4666768cad0af0bed5b3449d661` 的 `/api/send`、`/api/batch` 和 Web Tracker 实现。
+本文记录 Umami Analytics SDK 的生产故障模型、自动化验证范围和上线门禁。验证基线为 SDK `0.1.1`、Schema `1`、Policy `1`，并已对照 Umami submodule `de474a1da915d4666768cad0af0bed5b3449d661` 的 `/api/send`、`/api/batch` 和 Web Tracker 实现。
 
 ## 1. 核心保证
 

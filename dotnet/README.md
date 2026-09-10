@@ -16,7 +16,7 @@ await using var analytics = new AnalyticsClient(new AnalyticsOptions
     Environment = "production",
     Surface = "desktop",
     ProductVersion = "1.0.0",
-    UserAgent = "MyProduct/1.0.0 PystoneAnalytics/0.1.1",
+    UserAgent = "MyProduct/1.0.0 UmamiSdk/0.1.1",
     InitialConsent = ConsentState.Unknown,
     PersistentQueuePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

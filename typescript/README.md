@@ -54,7 +54,7 @@ const analytics = createNodeAnalytics({
   environment: 'production',
   surface: 'node',
   productVersion: '1.0.0',
-  userAgent: 'MyProduct/1.0.0 PystoneAnalytics/0.1.1',
+  userAgent: 'MyProduct/1.0.0 UmamiSdk/0.1.1',
   initialConsent: 'granted',
 });
 

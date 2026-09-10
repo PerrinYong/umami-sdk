@@ -1,6 +1,6 @@
 # Umami SDK 产品接入与使用手册
 
-本文是 Pystone 产品研发 Agent 接入自有 Umami SDK 的执行规范。目标是让负责网站、Desktop、OpenCode 插件、Node 服务或 Python CLI/Agent 的 LLM Agent，在不猜测接口、不复制 Umami Payload、不读取生产 Secret 的前提下，独立完成接入、测试和交付。
+本文是产品研发 Agent 接入 Umami SDK 的执行规范。目标是让负责网站、Desktop、OpenCode 插件、Node 服务或 Python CLI/Agent 的 LLM Agent，在不猜测接口、不复制 Umami Payload、不读取生产 Secret 的前提下，独立完成接入、测试和交付。
 
 当前 SDK 版本：`0.1.1`。事件 Schema 版本：`1`；Privacy Policy 版本：`1`。
 
@@ -396,7 +396,7 @@ export const analytics = createNodeAnalytics({
   environment: process.env.APP_ENV === 'production' ? 'production' : 'staging',
   surface: 'backend',
   productVersion: process.env.APP_VERSION!,
-  userAgent: `MyProduct/${process.env.APP_VERSION} PystoneAnalytics/0.1.1`,
+  userAgent: `MyProduct/${process.env.APP_VERSION} UmamiSdk/0.1.1`,
   initialConsent: 'granted',
   onDiagnostic: diagnostic => incrementAnalyticsDiagnostic(diagnostic.code),
 });
@@ -461,7 +461,7 @@ const analytics = createNodeAnalytics({
   environment,
   surface: 'opencode_plugin',
   productVersion: pluginVersion,
-  userAgent: `MyPlugin/${pluginVersion} PystoneAnalytics/0.1.1`,
+  userAgent: `MyPlugin/${pluginVersion} UmamiSdk/0.1.1`,
   initialConsent: restoredConsent,
 });
 
@@ -485,7 +485,7 @@ await using var analytics = new AnalyticsClient(new AnalyticsOptions
     Environment = "production",
     Surface = "desktop",
     ProductVersion = ProductVersion.Current,
-    UserAgent = $"MyProduct/{ProductVersion.Current} PystoneAnalytics/0.1.1",
+    UserAgent = $"MyProduct/{ProductVersion.Current} UmamiSdk/0.1.1",
     InitialConsent = restoredConsent,
     Platform = "windows",
     Architecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(),
@@ -527,7 +527,7 @@ analytics = AnalyticsClient(AnalyticsConfig(
     environment="production",
     surface="cli",
     product_version=PRODUCT_VERSION,
-    user_agent=f"MyProduct/{PRODUCT_VERSION} PystoneAnalytics/0.1.1",
+    user_agent=f"MyProduct/{PRODUCT_VERSION} UmamiSdk/0.1.1",
     initial_consent=restored_consent,
     platform="windows",
     persistent_queue_path=Path(product_private_data_dir) / "analytics-queue.json",

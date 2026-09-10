@@ -2,7 +2,7 @@
 
 ## 项目定位
 
-本目录是 Pystone 的独立 Umami Analytics SDK 工程。它为 Browser、Node/OpenCode、Windows Desktop 和 Python CLI/Agent 提供一致的薄 Adapter，将产品事件安全、异步地映射到 Umami。
+本目录是独立的 Umami Analytics SDK 工程。它为 Browser、Node/OpenCode、Windows Desktop 和 Python CLI/Agent 提供一致的薄 Adapter，将产品事件安全、异步地映射到 Umami。
 
 ## 核心边界
 
