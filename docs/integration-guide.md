@@ -6,6 +6,11 @@
 
 ## 1. Agent 的任务边界
 
+开发候选新增 TypeScript `accessType?: 'manual' | 'automated'`。配置后，`page()` 与
+`track()` 的 Umami Event Data 都携带 `access_type`；未配置保持原行为。
+宿主决定分类，不采集原始 User-Agent，也不把 `manual` 当作真人认证。
+它不改变 Consent 或 DNT，不额外创建一个页面事件。此能力尚未发布到 npm 0.1.1。
+
 接入 Agent 应完成：
 
 1. 确认产品、环境、区域 Endpoint 和 Website ID；

@@ -135,6 +135,9 @@ export class PolicyEngine {
     ) {
       throw new PolicyViolation({ code: 'invalid_config', detail: 'policy_version' });
     }
+    if (config.accessType !== undefined && !['manual', 'automated'].includes(config.accessType)) {
+      throw new PolicyViolation({ code: 'invalid_config', detail: 'access_type' });
+    }
     return endpoint.origin;
   }
 
@@ -322,6 +325,7 @@ export class PolicyEngine {
         website: this.config.websiteId,
         hostname: this.config.hostname,
         url: normalized.path,
+        ...(this.config.accessType ? { data: { access_type: this.config.accessType } } : {}),
         ...(normalized.title ? { title: normalized.title } : {}),
         ...(subjectId ? { id: subjectId } : {}),
       },
@@ -335,6 +339,7 @@ export class PolicyEngine {
       ['architecture', this.config.architecture],
       ['locale', this.config.locale],
       ['channel', this.config.channel],
+      ['access_type', this.config.accessType],
     ] as const) {
       if (value !== undefined && value !== '') result[key] = value;
     }
@@ -385,6 +390,9 @@ export class PolicyEngine {
   }
 
   private validateValue(key: string, value: AnalyticsValue, eventName?: string): void {
+    if (key === 'access_type' && value !== 'manual' && value !== 'automated') {
+      throw new PolicyViolation({ code: 'invalid_property', detail: key });
+    }
     if (value === null || typeof value === 'boolean') return;
     if (typeof value === 'number') {
       if (

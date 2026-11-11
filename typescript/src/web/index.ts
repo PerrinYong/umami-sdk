@@ -222,6 +222,7 @@ export class WebAnalyticsClient implements AnalyticsClient {
               ...properties,
               url: request.payload.url,
               title: request.payload.title,
+              ...(request.payload.data ? { data: request.payload.data } : {}),
               ...(request.payload.id ? { id: request.payload.id } : {}),
             }));
       await this.withTimeout(operation);

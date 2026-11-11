@@ -21,6 +21,21 @@ class FakeTracker {
   }
 }
 
+test('access type reaches page and named-event tracker data without adding a page event', async () => {
+  for (const accessType of ['manual', 'automated'] as const) {
+    const tracker = new FakeTracker();
+    const client = new WebAnalyticsClient({ ...baseConfig({ initialConsent: 'granted' }), accessType, tracker });
+    assert.equal(client.page({ path: '/' }).accepted, true);
+    assert.equal(client.track('contact_requested', { contact_type: 'email' }).accepted, true);
+    await client.flush();
+    assert.equal(tracker.events.length, 2);
+    for (const event of tracker.events) assert.equal((event.data as AnalyticsProperties).access_type, accessType);
+    const beforeSend = (client as unknown as { beforeSend: (type: string, payload: Record<string, unknown>) => unknown }).beforeSend.bind(client);
+    for (const event of tracker.events) assert.notEqual(beforeSend('event', event), false);
+    assert.equal(beforeSend('event', { url: '/', data: { access_type: 'anything' } }), false);
+  }
+});
+
 test('web adapter maps validated events to the tracker', async () => {
   const tracker = new FakeTracker();
   const client = new WebAnalyticsClient({

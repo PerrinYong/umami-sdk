@@ -46,6 +46,7 @@ export interface AnalyticsContext {
   architecture?: string;
   locale?: string;
   channel?: string;
+  accessType?: 'manual' | 'automated';
   policyVersion?: number;
 }
 
